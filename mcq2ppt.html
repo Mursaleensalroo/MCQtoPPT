@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MCQ to PowerPoint</title>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    --accent:#13294b; --accent-soft:#eaeff6; --accent-ink:#13294b;
+    --bg:#f5f6f8; --panel:#ffffff; --ink:#1b2430; --muted:#67727f;
+    --line:#e3e7ee; --field:#ffffff; --field-line:#d5dbe4;
+    --green:#1e7a46; --amber:#9a6a00; --amber-bg:#fdf4e3;
+    --shadow:0 1px 2px rgba(20,30,45,.06),0 6px 20px rgba(20,30,45,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --accent:#9db8e6; --accent-soft:#1b2740; --accent-ink:#cdddf7;
+      --bg:#0e1420; --panel:#151d2b; --ink:#e7ecf3; --muted:#93a0b2;
+      --line:#263040; --field:#0f1724; --field-line:#2b3647;
+      --green:#5fcf92; --amber:#e8c37a; --amber-bg:#2a2414;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:inherit}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 20px 72px;}
+  header.hd{margin-bottom:22px}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--accent-ink);text-transform:uppercase}
+  h1{font-family:Newsreader,Georgia,serif;font-weight:600;font-size:clamp(28px,6vw,40px);margin:.15em 0 .1em;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:15px;max-width:46ch}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px;margin-top:18px}
+  label.fld{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
+  input[type=text],textarea{width:100%;background:var(--field);color:var(--ink);border:1px solid var(--field-line);
+    border-radius:10px;padding:11px 13px;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s}
+  input[type=text]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+  textarea{min-height:40vh;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55;white-space:pre}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+  .row>.grow{flex:1 1 240px;min-width:0}
+  .controls{display:flex;flex-wrap:wrap;gap:18px 22px;align-items:center;margin-top:14px}
+  .swatches{display:flex;gap:8px;align-items:center}
+  .sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;outline:none;padding:0;
+    box-shadow:0 0 0 1px rgba(0,0,0,.08) inset}
+  .sw[aria-pressed="true"]{border-color:var(--ink)}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  button.act{font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:11px 20px;cursor:pointer;border:1px solid transparent;transition:transform .05s,filter .15s,background .15s}
+  button.act:active{transform:translateY(1px)}
+  .primary{background:var(--accent);color:#fff}
+  :root:not([data-theme="light"]) .primary{color:#0e1420}
+  .primary:hover{filter:brightness(1.07)}
+  .primary:disabled{opacity:.55;cursor:default}
+  .ghost{background:transparent;color:var(--ink);border-color:var(--field-line)}
+  .ghost:hover{background:var(--accent-soft)}
+  .status{margin-top:14px;font-size:14px;min-height:20px}
+  .status.err{color:#b3392c}
+  .status.ok{color:var(--green)}
+  #preview:empty{display:none}
+  #preview{margin-top:16px}
+  .pvhead{font-size:14px;font-weight:600;margin-bottom:10px}
+  .qchips{display:flex;flex-direction:column;gap:7px}
+  .qchip{display:flex;gap:10px;align-items:center;font-size:13px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:8px 11px}
+  .qn{font-weight:700;color:var(--accent-ink);min-width:34px}
+  .qans{font-weight:700;color:var(--green);min-width:20px}
+  .qmeta{color:var(--muted)}
+  .qstem{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;min-width:0}
+  .qwarn{border-color:var(--amber);background:var(--amber-bg)}
+  .qwarn .qans{color:var(--amber)}
+  .warnline{color:var(--amber);font-weight:600}
+  details.guide{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:0 16px;box-shadow:var(--shadow)}
+  details.guide summary{cursor:pointer;padding:14px 0;font-weight:600;font-size:14px;list-style:none}
+  details.guide summary::-webkit-details-marker{display:none}
+  details.guide summary::before{content:"▸ ";color:var(--muted)}
+  details.guide[open] summary::before{content:"▾ "}
+  .guide pre{background:var(--field);border:1px solid var(--field-line);border-radius:10px;padding:12px 14px;overflow-x:auto;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--ink);margin:0 0 14px}
+  .guide p{font-size:13.5px;color:var(--muted);margin:0 0 12px}
+  .guide a{color:var(--accent-ink);font-weight:600;cursor:pointer;text-decoration:underline}
+  .foot{margin-top:26px;font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hd">
+    <div class="kicker">Deck Builder</div>
+    <h1>Paste&nbsp;→&nbsp;PowerPoint</h1>
+    <div class="sub">Drop in a set of multiple-choice questions and get a clean deck — one slide per question, with the answer and explanation on the next.</div>
+  </header>
+
+  <div class="panel">
+    <div class="row">
+      <div class="grow">
+        <label class="fld" for="title">Deck title <span style="font-weight:400">(optional — a “TOPIC:” line in your text wins)</span></label>
+        <input type="text" id="title" placeholder="e.g. Bank Reconciliation Statement" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="swatches" role="group" aria-label="Deck colour">
+        <span class="fld" style="margin:0 2px 0 0">Colour</span>
+        <button class="sw" data-theme="navy"   title="Navy"   style="background:#13294b"></button>
+        <button class="sw" data-theme="slate"  title="Slate"  style="background:#1f2a37"></button>
+        <button class="sw" data-theme="indigo" title="Indigo" style="background:#434e9e"></button>
+        <button class="sw" data-theme="plum"   title="Plum"   style="background:#6a3d7a"></button>
+      </div>
+      <label class="chk"><input type="checkbox" id="keepnums"> Keep original question numbers</label>
+    </div>
+
+    <div style="margin-top:16px">
+      <label class="fld" for="src">Paste your questions</label>
+      <textarea id="src" spellcheck="false" placeholder="Paste here… (see the format guide below, or load an example)"></textarea>
+    </div>
+
+    <div class="btns">
+      <button class="act ghost" id="btnPreview">Preview</button>
+      <button class="act primary" id="btnMake">Download .pptx</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div id="preview"></div>
+  </div>
+
+  <details class="guide">
+    <summary>Format guide &amp; example</summary>
+    <p>Each question is a block starting with <b>MCQ&nbsp;1</b> (or <b>Q1</b>). Options use <b>(A)…(D)</b>, the key is a <b>Correct Answer:</b> line, and the <b>Why (X) is correct / incorrect</b> lines become the explanation. An optional first line <b>TOPIC: …</b> sets the deck title, and <b>Statement&nbsp;I/II/III…</b> lines are grouped automatically. <a id="loadEx">Load an example →</a></p>
+    <pre id="exBox">MCQ 1
+Question:
+Which book is maintained by the bank?
+(A) Petty cash book
+(B) Bank passbook
+(C) Purchases day book
+(D) Sales day book
+Correct Answer: (B)
+Explanation:
+Why (B) is correct:
+The passbook is the bank's copy of the account.
+Why (A) is incorrect:
+Petty cash is recorded by the firm.
+Why (C) is incorrect:
+Purchases go in the purchases day book.
+Why (D) is incorrect:
+Sales go in the sales day book.</pre>
+  </details>
+
+  <div class="foot">Runs entirely in your browser. Nothing is uploaded — your text stays on this device.</div>
+</div>
+
+<script>
+/* ===== MCQ -> PPTX core (portable: Node + browser) ===== */
+/* Defines two globals: parseMCQs(raw) and buildDeck(PptxCtor, parsed, opts) */
+
+function _clean(s) {
+  return (s || '').replace(/[ \t]+\n/g, '\n').replace(/\s+/g, ' ').trim();
+}
+
+function parseMCQs(raw) {
+  const text = (raw || '').replace(/\r\n?/g, '\n');
+  const issues = [];
+
+  // optional deck title from a leading TOPIC: line
+  let title = '';
+  const tM = text.match(/^[ \t]*TOPIC[ \t]*[:\-][ \t]*(.+)$/im);
+  if (tM) title = tM[1].trim().replace(/\s+/g, ' ');
+
+  // split into blocks on "MCQ N" / "Question N" / "Q N" header lines
+  const headerRe = /^[ \t]*(?:MCQ|Questions?|Q)[ \t]*#?[ \t]*(\d+)\b[^\n]*$/gim;
+  const marks = [];
+  let m;
+  while ((m = headerRe.exec(text)) !== null) {
+    marks.push({ start: m.index, end: headerRe.lastIndex, num: parseInt(m[1], 10) });
+  }
+  let blocks;
+  if (marks.length === 0) {
+    blocks = [{ num: null, body: text.replace(/^[ \t]*TOPIC[ \t]*[:\-][^\n]*\n/im, '') }];
+  } else {
+    blocks = marks.map((mk, i) => ({
+      num: mk.num,
+      body: text.slice(mk.end, i + 1 < marks.length ? marks[i + 1].start : text.length),
+    }));
+  }
+
+  const questions = [];
+  blocks.forEach((blk, bi) => {
+    const parsed = parseBlock(blk.body);
+    if (!parsed) return;
+    parsed.srcNum = blk.num != null ? blk.num : (bi + 1);
+    // per-question validation
+    const flags = [];
+    if (Object.keys(parsed.opts).length < 2) flags.push('fewer than 2 options');
+    if (!parsed.ans) flags.push('no correct answer detected');
+    else if (!parsed.opts[parsed.ans]) flags.push('answer letter has no matching option');
+    if (!parsed.whyCorrect) flags.push('no explanation detected');
+    parsed.flags = flags;
+    questions.push(parsed);
+  });
+
+  if (questions.length === 0) issues.push('No questions found. Check the format (see the guide).');
+
+  return { title, questions, issues };
+}
+
+function parseBlock(body) {
+  let b = body.replace(/\n{3,}/g, '\n\n').trim();
+  if (!b) return null;
+
+  // correct answer
+  let ans = null;
+  const ansM = b.match(/Correct\s*Answer\s*[:\-]?\s*\(?\s*([A-D])\s*\)?/i);
+  if (ansM) ans = ansM[1].toUpperCase();
+
+  // split at the "Correct Answer" line: pre = stem+options, post = answer+explanation
+  const caIdx = b.search(/Correct\s*Answer\s*[:\-]/i);
+  const pre = caIdx >= 0 ? b.slice(0, caIdx) : b;
+  const post = caIdx >= 0 ? b.slice(caIdx) : '';
+
+  // options — prefer "(A) ..." form, fall back to "A) ..." / "A. ..."
+  const opts = {};
+  let firstOptIdx = -1;
+  let om;
+  const parenRe = /^[ \t]*\(([A-Da-d])\)[ \t]*(.+?)[ \t]*$/gm;
+  while ((om = parenRe.exec(pre)) !== null) {
+    if (firstOptIdx < 0) firstOptIdx = om.index;
+    opts[om[1].toUpperCase()] = om[2].trim();
+  }
+  if (Object.keys(opts).length === 0) {
+    const altRe = /^[ \t]*([A-Da-d])[\).][ \t]*(.+?)[ \t]*$/gm;
+    while ((om = altRe.exec(pre)) !== null) {
+      if (firstOptIdx < 0) firstOptIdx = om.index;
+      opts[om[1].toUpperCase()] = om[2].trim();
+    }
+  }
+
+  // stem region (before first option), drop a leading "Question:" label
+  let stemRegion = (firstOptIdx >= 0 ? pre.slice(0, firstOptIdx) : pre);
+  stemRegion = stemRegion.replace(/^\s*Question\s*[:\-]?\s*/i, '').trim();
+
+  // statements: "Statement I:" / "I." / "I)" (roman I..VI), need >=2 to count
+  const stmtRe = /^[ \t]*(?:Statement[ \t]+)?(I{1,3}|IV|VI?|VII|VIII|IX|X)[ \t]*[:.\)][ \t]+(.+?)[ \t]*$/gim;
+  const sm = [];
+  let s;
+  while ((s = stmtRe.exec(stemRegion)) !== null) {
+    sm.push({ label: s[1].toUpperCase(), text: s[2].trim(), start: s.index, end: stmtRe.lastIndex });
+  }
+  let intro = '', stem = '', statements = [];
+  if (sm.length >= 2) {
+    statements = sm.map((x) => ({ l: x.label, t: x.text }));
+    intro = stemRegion.slice(0, sm[0].start).trim();
+    const tail = stemRegion.slice(sm[sm.length - 1].end).trim();
+    if (tail) stem = tail;
+    else { stem = intro; intro = ''; }
+  } else {
+    stem = stemRegion;
+  }
+  stem = stem.replace(/\s+/g, ' ').trim();
+  intro = intro.replace(/\s+/g, ' ').trim();
+
+  // explanation: "Why (X) is correct/incorrect"
+  const whyRe = /Why\s*\(?\s*([A-Da-d])\s*\)?\s*is\s*(in)?correct\s*[:\-]?/gi;
+  const hits = [];
+  let w;
+  while ((w = whyRe.exec(post)) !== null) {
+    hits.push({ letter: w[1].toUpperCase(), incorrect: !!w[2], start: w.index, end: whyRe.lastIndex });
+  }
+  let whyCorrect = '';
+  const wrong = [];
+  hits.forEach((h, i) => {
+    const t = _clean(post.slice(h.end, i + 1 < hits.length ? hits[i + 1].start : post.length));
+    if (!h.incorrect) {
+      if (!whyCorrect || h.letter === ans) whyCorrect = t;
+    } else {
+      wrong.push({ o: h.letter, t });
+    }
+  });
+  wrong.sort((a, c) => a.o.localeCompare(c.o));
+
+  return { intro, statements, stem, opts, ans, whyCorrect, wrong };
+}
+
+/* ---------- deck builder ---------- */
+const THEMES = {
+  navy:   { dark: '13294B', mid: '21486F', tint: 'E9EEF5' },
+  slate:  { dark: '1F2A37', mid: '3B4A5A', tint: 'EBEEF2' },
+  indigo: { dark: '27306B', mid: '434E9E', tint: 'EAECF7' },
+  plum:   { dark: '3B1F47', mid: '6A3D7A', tint: 'F0E9F3' },
+};
+const GREEN = '1E7A46', GREENBG = 'E7F3EC', RED = 'A23B2E';
+const BG = 'F4F7FA', WHITE = 'FFFFFF', INK = '1E2A38', MUTED = '5C6B7A';
+const HEAD = 'Georgia', BODY = 'Calibri';
+
+function buildDeck(PptxCtor, parsed, opts) {
+  opts = opts || {};
+  const th = THEMES[opts.theme] || THEMES.navy;
+  const DARK = th.dark, MID = th.mid, TINT = th.tint, TEAL = th.mid;
+  const title = (opts.title || parsed.title || 'Multiple-Choice Questions').trim();
+  const keepNums = !!opts.keepNums;
+  const W = 13.333, H = 7.5, M = 0.55;
+  const qs = parsed.questions;
+
+  const pptx = new PptxCtor();
+  pptx.defineLayout({ name: 'W', width: W, height: H });
+  pptx.layout = 'W';
+  pptx.title = title;
+
+  const shadow = () => ({ type: 'outer', color: '9AA7B4', blur: 6, offset: 2, angle: 90, opacity: 0.35 });
+
+  function badge(s, x, y, d, t, fill, tcol) {
+    s.addShape('ellipse', { x, y, w: d, h: d, fill: { color: fill }, line: { type: 'none' } });
+    s.addText(t, { x, y, w: d, h: d, align: 'center', valign: 'middle', fontFace: HEAD,
+      fontSize: String(t).length > 2 ? 14 : 18, bold: true, color: tcol, isTextBox: true, margin: 0 });
+  }
+  function footer(s, n) {
+    s.addText(title, { x: M, y: H - 0.42, w: 9, h: 0.3, fontFace: BODY, fontSize: 9, color: MUTED, align: 'left', isTextBox: true, margin: 0 });
+    s.addText('Q' + n + ' / ' + qs.length, { x: W - M - 2, y: H - 0.42, w: 2, h: 0.3, fontFace: BODY, fontSize: 9, color: MUTED, align: 'right', isTextBox: true, margin: 0 });
+  }
+
+  // title slide
+  {
+    const s = pptx.addSlide();
+    s.background = { color: DARK };
+    s.addShape('roundRect', { x: M, y: 1.7, w: 0.9, h: 0.14, rectRadius: 0.07, fill: { color: MID }, line: { type: 'none' } });
+    s.addText('MULTIPLE-CHOICE PRACTICE', { x: M, y: 2.5, w: 11, h: 0.4, fontFace: BODY, fontSize: 15, bold: true, color: 'AEC2DD', charSpacing: 3, isTextBox: true, margin: 0 });
+    s.addText(title, { x: M, y: 2.95, w: 12, h: 1.9, fontFace: HEAD, fontSize: title.length > 48 ? 34 : 44, bold: true, color: WHITE, valign: 'top', isTextBox: true, margin: 0 });
+    s.addText(qs.length + ' question' + (qs.length === 1 ? '' : 's') + ' \u2014 each with its answer and explanation on the next slide.',
+      { x: M, y: 5.25, w: 11, h: 0.8, fontFace: BODY, fontSize: 18, color: 'CBD9EC', isTextBox: true, margin: 0 });
+  }
+
+  qs.forEach((q, i) => {
+    const n = keepNums ? q.srcNum : (i + 1);
+
+    // ---- QUESTION SLIDE ----
+    {
+      const s = pptx.addSlide();
+      s.background = { color: BG };
+      badge(s, M, 0.5, 0.78, 'Q' + n, DARK, WHITE);
+      s.addText('QUESTION', { x: M + 0.98, y: 0.53, w: 7, h: 0.3, fontFace: BODY, fontSize: 12, bold: true, color: TEAL, charSpacing: 2, isTextBox: true, margin: 0 });
+      s.addText(title, { x: M + 0.98, y: 0.82, w: 11.2, h: 0.4, fontFace: HEAD, fontSize: 17, bold: true, color: DARK, isTextBox: true, margin: 0 });
+
+      const hasStmt = q.statements && q.statements.length >= 2;
+      const runs = [];
+      if (hasStmt) {
+        if (q.intro) runs.push({ text: q.intro, options: { fontFace: BODY, fontSize: 15, bold: true, color: INK, breakLine: true, paraSpaceAfter: 6 } });
+        q.statements.forEach((st) => {
+          runs.push({ text: st.l + '.  ', options: { fontFace: BODY, fontSize: 14, bold: true, color: TEAL } });
+          runs.push({ text: st.t, options: { fontFace: BODY, fontSize: 14, color: INK, breakLine: true, paraSpaceAfter: 4 } });
+        });
+        if (q.stem) runs.push({ text: q.stem, options: { fontFace: BODY, fontSize: 15, bold: true, italic: true, color: DARK, breakLine: true } });
+      } else {
+        runs.push({ text: q.stem || '(question text missing)', options: { fontFace: BODY, fontSize: 17, bold: true, color: INK } });
+      }
+
+      const stemTop = 1.5;
+      let stemH;
+      if (hasStmt) stemH = q.statements.length >= 4 ? 2.25 : (q.statements.length === 3 ? 1.9 : 1.55);
+      else { const len = (q.stem || '').length; stemH = len > 150 ? 1.5 : 1.15; }
+      s.addShape('roundRect', { x: M, y: stemTop, w: W - 2 * M, h: stemH, rectRadius: 0.08, fill: { color: TINT }, line: { type: 'none' }, shadow: shadow() });
+      s.addText(runs, { x: M + 0.3, y: stemTop + 0.14, w: W - 2 * M - 0.6, h: stemH - 0.28, valign: 'top', align: 'left', isTextBox: true, margin: 0 });
+
+      const letters = ['A', 'B', 'C', 'D'].filter((L) => q.opts[L] != null);
+      const optTop = stemTop + stemH + 0.3;
+      const avail = (H - 0.55) - optTop;
+      const gap = 0.16;
+      const rowH = Math.min(0.86, (avail - (letters.length - 1) * gap) / Math.max(letters.length, 1));
+      letters.forEach((L, k) => {
+        const y = optTop + k * (rowH + gap);
+        s.addShape('roundRect', { x: M, y, w: W - 2 * M, h: rowH, rectRadius: 0.06, fill: { color: WHITE }, line: { color: 'D4DEEA', width: 1 } });
+        badge(s, M + 0.16, y + (rowH - 0.5) / 2, 0.5, L, DARK, WHITE);
+        s.addText(q.opts[L], { x: M + 0.85, y, w: W - 2 * M - 1.05, h: rowH, valign: 'middle', align: 'left', fontFace: BODY, fontSize: 15, color: INK, isTextBox: true, margin: 0 });
+      });
+      footer(s, n);
+    }
+
+    // ---- ANSWER SLIDE ----
+    {
+      const s = pptx.addSlide();
+      s.background = { color: BG };
+      badge(s, M, 0.5, 0.78, 'Q' + n, GREEN, WHITE);
+      s.addText('ANSWER & EXPLANATION', { x: M + 0.98, y: 0.53, w: 8, h: 0.3, fontFace: BODY, fontSize: 12, bold: true, color: GREEN, charSpacing: 2, isTextBox: true, margin: 0 });
+      s.addText(title, { x: M + 0.98, y: 0.82, w: 11.2, h: 0.4, fontFace: HEAD, fontSize: 17, bold: true, color: DARK, isTextBox: true, margin: 0 });
+
+      const banTop = 1.5, banH = 1.0;
+      s.addShape('roundRect', { x: M, y: banTop, w: W - 2 * M, h: banH, rectRadius: 0.08, fill: { color: GREEN }, line: { type: 'none' }, shadow: shadow() });
+      const ansText = q.ans ? '(' + q.ans + ')' : '\u2014';
+      const ansOpt = q.ans && q.opts[q.ans] ? q.opts[q.ans] : '';
+      s.addText([
+        { text: '\u2713  ', options: { fontFace: BODY, fontSize: 22, bold: true, color: WHITE } },
+        { text: 'Correct Answer:  ', options: { fontFace: BODY, fontSize: 16, color: 'CFEBD9' } },
+        { text: ansText + '  ', options: { fontFace: HEAD, fontSize: 20, bold: true, color: WHITE } },
+        { text: ansOpt, options: { fontFace: BODY, fontSize: 15, color: 'EAF6EF' } },
+      ], { x: M + 0.35, y: banTop, w: W - 2 * M - 0.6, h: banH, valign: 'middle', align: 'left', isTextBox: true, margin: 0 });
+
+      const wcTop = banTop + banH + 0.25, wcH = 1.35;
+      s.addShape('roundRect', { x: M, y: wcTop, w: W - 2 * M, h: wcH, rectRadius: 0.08, fill: { color: GREENBG }, line: { type: 'none' } });
+      s.addText('\u2713  Why ' + ansText + ' is correct', { x: M + 0.3, y: wcTop + 0.18, w: 10, h: 0.4, fontFace: HEAD, fontSize: 15, bold: true, color: GREEN, isTextBox: true, margin: 0 });
+      s.addText(q.whyCorrect || '(explanation not found in the pasted text)', { x: M + 0.3, y: wcTop + 0.58, w: W - 2 * M - 0.6, h: wcH - 0.7, valign: 'top', align: 'left', fontFace: BODY, fontSize: 13.5, color: INK, isTextBox: true, margin: 0 });
+
+      if (q.wrong && q.wrong.length) {
+        const whTop = wcTop + wcH + 0.28;
+        s.addText('\u00D7  Why the other options don\u2019t work', { x: M, y: whTop - 0.03, w: 10, h: 0.35, fontFace: HEAD, fontSize: 14, bold: true, color: RED, isTextBox: true, margin: 0 });
+        const listTop = whTop + 0.44;
+        const listAvail = (H - 0.55) - listTop;
+        const g = 0.14, nn = q.wrong.length;
+        const rh = Math.min(0.92, (listAvail - (nn - 1) * g) / nn);
+        q.wrong.forEach((wr, k) => {
+          const y = listTop + k * (rh + g);
+          s.addShape('roundRect', { x: M, y, w: W - 2 * M, h: rh, rectRadius: 0.05, fill: { color: WHITE }, line: { color: 'E3D3D0', width: 1 } });
+          badge(s, M + 0.16, y + (rh - 0.46) / 2, 0.46, wr.o, RED, WHITE);
+          s.addText(wr.t, { x: M + 0.8, y, w: W - 2 * M - 1.0, h: rh, valign: 'middle', align: 'left', fontFace: BODY, fontSize: 12.5, color: INK, isTextBox: true, margin: 0 });
+        });
+      }
+      footer(s, n);
+    }
+  });
+
+  return pptx;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { parseMCQs, buildDeck, THEMES };
+}
+</script>
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var titleEl=$("title"), srcEl=$("src"), keepEl=$("keepnums"),
+      statusEl=$("status"), prevEl=$("preview"),
+      btnPrev=$("btnPreview"), btnMake=$("btnMake");
+  var LS="mcq2ppt.";
+  var currentTheme="navy";
+
+  var ACCENTS={
+    navy:{light:["#13294b","#eaeff6","#13294b"],dark:["#9db8e6","#1b2740","#cdddf7"]},
+    slate:{light:["#1f2a37","#eceef2","#1f2a37"],dark:["#aeb9c7","#20262f","#d7dee8"]},
+    indigo:{light:["#434e9e","#ebecf7","#36408a"],dark:["#aab2ef","#222749","#cbd0f7"]},
+    plum:{light:["#6a3d7a","#f0e9f3","#5a3268"],dark:["#cfa6dd","#2a1f31","#e6cdee"]}
+  };
+  function darkMode(){ try{ return matchMedia("(prefers-color-scheme: dark)").matches; }catch(e){ return false; } }
+  function applyAccent(){
+    var set=(ACCENTS[currentTheme]||ACCENTS.navy)[darkMode()?"dark":"light"];
+    var r=document.documentElement.style;
+    r.setProperty("--accent",set[0]); r.setProperty("--accent-soft",set[1]); r.setProperty("--accent-ink",set[2]);
+  }
+  try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyAccent); }catch(e){}
+
+  function save(){ try{
+    localStorage.setItem(LS+"title",titleEl.value);
+    localStorage.setItem(LS+"src",srcEl.value);
+    localStorage.setItem(LS+"theme",currentTheme);
+    localStorage.setItem(LS+"keep",keepEl.checked?"1":"0");
+  }catch(e){} }
+  function load(){ try{
+    if(localStorage.getItem(LS+"title")!=null) titleEl.value=localStorage.getItem(LS+"title");
+    if(localStorage.getItem(LS+"src")!=null) srcEl.value=localStorage.getItem(LS+"src");
+    var t=localStorage.getItem(LS+"theme"); if(t&&ACCENTS[t]) currentTheme=t;
+    keepEl.checked=localStorage.getItem(LS+"keep")==="1";
+  }catch(e){} }
+
+  function setTheme(t){
+    currentTheme=ACCENTS[t]?t:"navy";
+    var sws=document.querySelectorAll(".sw");
+    for(var i=0;i<sws.length;i++) sws[i].setAttribute("aria-pressed", sws[i].getAttribute("data-theme")===currentTheme?"true":"false");
+    applyAccent(); save();
+  }
+
+  function status(msg,cls){ statusEl.className="status"+(cls?" "+cls:""); statusEl.textContent=msg||""; }
+
+  function esc(s){ return (s||"").replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
+
+  function renderPreview(parsed){
+    if(!parsed.questions.length){
+      prevEl.innerHTML='<div class="pvhead warnline">No questions found — check the format guide below.</div>';
+      return;
+    }
+    var h='<div class="pvhead">Found '+parsed.questions.length+' question'+(parsed.questions.length>1?"s":"")+
+          (parsed.title?' · title: “'+esc(parsed.title)+'”':'')+'</div><div class="qchips">';
+    parsed.questions.forEach(function(q,i){
+      var warn=q.flags&&q.flags.length;
+      var meta=Object.keys(q.opts).length+" opts"+(q.statements.length?(" · "+q.statements.length+" stmts"):"");
+      h+='<div class="qchip'+(warn?' qwarn':'')+'">'+
+         '<span class="qn">Q'+(keepEl.checked?q.srcNum:(i+1))+'</span>'+
+         '<span class="qans">'+(q.ans||"?")+'</span>'+
+         '<span class="qstem">'+esc(q.stem||q.intro||"(no text)")+'</span>'+
+         '<span class="qmeta">'+(warn?('⚠ '+esc(q.flags.join("; "))):meta)+'</span>'+
+         '</div>';
+    });
+    h+='</div>';
+    prevEl.innerHTML=h;
+  }
+
+  function filename(parsed){
+    var base=(titleEl.value||parsed.title||"questions").replace(/[^\w \-]+/g,"").replace(/\s+/g," ").trim().slice(0,80);
+    if(!base) base="questions";
+    return base+".pptx";
+  }
+
+  function doPreview(){
+    var parsed=parseMCQs(srcEl.value);
+    renderPreview(parsed);
+    if(parsed.questions.length) status(""); else status("");
+    return parsed;
+  }
+
+  async function getDownloads(){
+    try{ if(window.claude&&claude.use){ return await claude.use("downloads"); } }catch(e){}
+    return null;
+  }
+  function anchorSave(blob,name){
+    try{
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=url; a.download=name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  async function doMake(){
+    if(typeof PptxGenJS==="undefined"){ status("Couldn’t load the PowerPoint engine. Check your connection and reload.","err"); return; }
+    var parsed=parseMCQs(srcEl.value);
+    renderPreview(parsed);
+    if(!parsed.questions.length){ status("Nothing to build — no questions detected.","err"); return; }
+    btnMake.disabled=true; var old=btnMake.textContent; btnMake.textContent="Building…"; status("Building your deck…");
+    try{
+      var pptx=buildDeck(PptxGenJS, parsed, {theme:currentTheme, keepNums:keepEl.checked, title:titleEl.value});
+      var blob=await pptx.write({outputType:"blob"});
+      var name=filename(parsed);
+      var dl=await getDownloads();
+      if(dl){
+        try{
+          await dl.save({filename:name,data:blob});
+          status("Saved “"+name+"” · "+parsed.questions.length+" questions, "+(parsed.questions.length*2+1)+" slides.","ok");
+        }catch(e){
+          if(e&&e.code==="declined"){ status("Save cancelled.",""); }
+          else { status("Save failed ("+((e&&e.code)||"error")+").","err"); }
+        }
+      }else{
+        if(anchorSave(blob,name)) status("Downloaded “"+name+"”.","ok");
+        else status("Couldn’t start the download in this view.","err");
+      }
+    }catch(e){
+      status("Something went wrong building the deck: "+(e&&e.message||e),"err");
+    }finally{
+      btnMake.disabled=false; btnMake.textContent=old;
+    }
+  }
+
+  // wire up
+  document.querySelectorAll(".sw").forEach(function(b){
+    b.addEventListener("click",function(){ setTheme(b.getAttribute("data-theme")); });
+  });
+  $("loadEx").addEventListener("click",function(){
+    if(srcEl.value.trim() && !confirm("Replace the current text with the example?")) return;
+    srcEl.value=$("exBox").textContent; if(!titleEl.value) titleEl.value="Sample Quiz"; save(); doPreview();
+  });
+  var t;
+  function deb(){ clearTimeout(t); t=setTimeout(save,300); }
+  srcEl.addEventListener("input",deb); titleEl.addEventListener("input",deb);
+  keepEl.addEventListener("change",function(){ save(); if(prevEl.innerHTML) doPreview(); });
+  btnPrev.addEventListener("click",doPreview);
+  btnMake.addEventListener("click",doMake);
+
+  load(); setTheme(currentTheme);
+  if(srcEl.value.trim()) doPreview();
+})();
+</script>
+</body>
+</html>
