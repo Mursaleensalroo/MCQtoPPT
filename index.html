@@ -1,1 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MCQ to PowerPoint</title>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    --accent:#13294b; --accent-soft:#eaeff6; --accent-ink:#13294b;
+    --bg:#f5f6f8; --panel:#ffffff; --ink:#1b2430; --muted:#67727f;
+    --line:#e3e7ee; --field:#ffffff; --field-line:#d5dbe4;
+    --green:#1e7a46; --amber:#9a6a00; --amber-bg:#fdf4e3;
+    --shadow:0 1px 2px rgba(20,30,45,.06),0 6px 20px rgba(20,30,45,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --accent:#9db8e6; --accent-soft:#1b2740; --accent-ink:#cdddf7;
+      --bg:#0e1420; --panel:#151d2b; --ink:#e7ecf3; --muted:#93a0b2;
+      --line:#263040; --field:#0f1724; --field-line:#2b3647;
+      --green:#5fcf92; --amber:#e8c37a; --amber-bg:#2a2414;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:inherit}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px;margin:0 auto;padding:64px 20px 110px;}
+  header.hd{margin-bottom:32px}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--accent-ink);text-transform:uppercase}
+  h1{font-family:Newsreader,Georgia,serif;font-weight:600;font-size:clamp(28px,6vw,40px);margin:.15em 0 .1em;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:15px;max-width:46ch}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:26px 24px;margin-top:24px}
+  label.fld{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
+  input[type=text],textarea{width:100%;background:var(--field);color:var(--ink);border:1px solid var(--field-line);
+    border-radius:10px;padding:11px 13px;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s}
+  input[type=text]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+  textarea{min-height:40vh;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55;white-space:pre}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+  .row>.grow{flex:1 1 240px;min-width:0}
+  .controls{display:flex;flex-wrap:wrap;gap:18px 22px;align-items:center;margin-top:14px}
+  .swatches{display:flex;gap:8px;align-items:center}
+  .sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;outline:none;padding:0;
+    box-shadow:0 0 0 1px rgba(0,0,0,.08) inset}
+  .sw[aria-pressed="true"]{border-color:var(--ink)}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+  button.act{font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:11px 20px;cursor:pointer;border:1px solid transparent;transition:transform .05s,filter .15s,background .15s}
+  button.act:active{transform:translateY(1px)}
+  button.act.primary{background:#1f4e9c;color:#ffffff;border-color:#1f4e9c}
+  .primary:hover,.primary:focus{background:#1f4e9c;color:#ffffff}
+  .primary:disabled{opacity:.6;cursor:default}
+  button.act.ghost{background:var(--panel);color:var(--ink);border-color:#b9c3d0}
+  button.act.ghost:hover{background:var(--accent-soft)}
+  .status{margin-top:14px;font-size:14px;min-height:20px}
+  .status.err{color:#b3392c}
+  .status.ok{color:var(--green)}
+  #preview:empty{display:none}
+  #preview{margin-top:16px}
+  .pvhead{font-size:14px;font-weight:600;margin-bottom:10px}
+  .qchips{display:flex;flex-direction:column;gap:7px}
+  .qchip{display:flex;gap:10px;align-items:center;font-size:13px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:8px 11px}
+  .qn{font-weight:700;color:var(--accent-ink);min-width:34px}
+  .qans{font-weight:700;color:var(--green);min-width:20px}
+  .qmeta{color:var(--muted);white-space:nowrap}
+  .qstem{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;min-width:0}
+  .qwarn{border-color:var(--amber);background:var(--amber-bg)}
+  .qwarn .qans{color:var(--amber)}
+  .warnline{color:var(--amber);font-weight:600}
+  details.guide{margin-top:28px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:0 16px;box-shadow:var(--shadow)}
+  details.guide summary{cursor:pointer;padding:14px 0;font-weight:600;font-size:14px;list-style:none}
+  details.guide summary::-webkit-details-marker{display:none}
+  details.guide summary::before{content:"▸ ";color:var(--muted)}
+  details.guide[open] summary::before{content:"▾ "}
+  .guide pre{background:var(--field);border:1px solid var(--field-line);border-radius:10px;padding:12px 14px;overflow-x:auto;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--ink);margin:0 0 14px}
+  .guide p{font-size:13.5px;color:var(--muted);margin:0 0 12px}
+  .guide a{color:var(--accent-ink);font-weight:600;cursor:pointer;text-decoration:underline}
+  .foot{margin-top:44px;font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hd">
+    <div class="kicker">Deck Builder</div>
+    <h1>Paste&nbsp;→&nbsp;PowerPoint</h1>
+    <div class="sub">Drop in a set of multiple-choice questions and get a clean deck — one slide per question, with the answer and explanation on the next.</div>
+  </header>
 
+  <div class="panel">
+    <div class="row">
+      <div class="grow">
+        <label class="fld" for="title">Deck title <span style="font-weight:400">(optional — a “TOPIC:” line in your text wins)</span></label>
+        <input type="text" id="title" placeholder="e.g. Bank Reconciliation Statement" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="swatches" role="group" aria-label="Deck colour">
+        <span class="fld" style="margin:0 2px 0 0">Colour</span>
+        <button class="sw" data-theme="navy"   title="Navy"   style="background:#13294b"></button>
+        <button class="sw" data-theme="slate"  title="Slate"  style="background:#1f2a37"></button>
+        <button class="sw" data-theme="indigo" title="Indigo" style="background:#434e9e"></button>
+        <button class="sw" data-theme="plum"   title="Plum"   style="background:#6a3d7a"></button>
+      </div>
+      <label class="chk"><input type="checkbox" id="keepnums"> Keep original question numbers</label>
+    </div>
+
+    <div style="margin-top:16px">
+      <label class="fld" for="src">Paste your questions</label>
+      <textarea id="src" spellcheck="false" placeholder="Paste here… (see the format guide below, or load an example)"></textarea>
+    </div>
+
+    <div class="btns">
+      <button class="act ghost" id="btnPreview">Preview</button>
+      <button class="act primary" id="btnMake">Download .pptx</button>
+      <button class="act ghost" id="btnReset">Reset</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div id="preview"></div>
+  </div>
+
+  <details class="guide">
+    <summary>Format guide &amp; example</summary>
+    <p>Each question is a block starting with <b>MCQ&nbsp;1</b> (or <b>Q1</b>). Options use <b>(A)…(D)</b>, the key is a <b>Correct Answer:</b> line, and the <b>Why (X) is correct / incorrect</b> lines become the explanation. An optional first line <b>TOPIC: …</b> sets the deck title, and <b>Statement&nbsp;I/II/III…</b> lines are grouped automatically. <a id="loadEx">Load an example →</a></p>
+    <pre id="exBox">MCQ 1
+Question:
+Which book is maintained by the bank?
+(A) Petty cash book
+(B) Bank passbook
+(C) Purchases day book
+(D) Sales day book
+Correct Answer: (B)
+Explanation:
+Why (B) is correct:
+The passbook is the bank's copy of the account.
+Why (A) is incorrect:
+Petty cash is recorded by the firm.
+Why (C) is incorrect:
+Purchases go in the purchases day book.
+Why (D) is incorrect:
+Sales go in the sales day book.</pre>
+  </details>
+
+  <div class="foot">Runs entirely in your browser. Nothing is uploaded — your text stays on this device.</div>
+</div>
+
+<script>
+/* ===== MCQ -> PPTX core (portable: Node + browser) ===== */
+/* Defines two globals: parseMCQs(raw) and buildDeck(PptxCtor, parsed, opts) */
+
+function _clean(s) {
+  return (s || '').replace(/[ \t]+\n/g, '\n').replace(/\s+/g, ' ').trim();
+}
+
+function parseMCQs(raw) {
+  const text = (raw || '').replace(/\r\n?/g, '\n');
+  const issues = [];
+
+  // optional deck title from a leading TOPIC: line
+  let title = '';
+  const tM = text.match(/^[ \t]*TOPIC[ \t]*[:\-][ \t]*(.+)$/im);
+  if (tM) title = tM[1].trim().replace(/\s+/g, ' ');
+
+  // split into blocks on "MCQ N" / "Question N" / "Q N" header lines
+  const headerRe = /^[ \t]*(?:MCQ|Questions?|Q)[ \t]*#?[ \t]*(\d+)\b[^\n]*$/gim;
+  const marks = [];
+  let m;
+  while ((m = headerRe.exec(text)) !== null) {
+    marks.push({ start: m.index, end: headerRe.lastIndex, num: parseInt(m[1], 10) });
+  }
+  let blocks;
+  if (marks.length === 0) {
+    blocks = [{ num: null, body: text.replace(/^[ \t]*TOPIC[ \t]*[:\-][^\n]*\n/im, '') }];
+  } else {
+    blocks = marks.map((mk, i) => ({
+      num: mk.num,
+      body: text.slice(mk.end, i + 1 < marks.length ? marks[i + 1].start : text.length),
+    }));
+  }
+
+  const questions = [];
+  blocks.forEach((blk, bi) => {
+    const parsed = parseBlock(blk.body);
+    if (!parsed) return;
+    parsed.srcNum = blk.num != null ? blk.num : (bi + 1);
+    // per-question validation
+    const flags = [];
+    if (Object.keys(parsed.opts).length < 2) flags.push('fewer than 2 options');
+    if (!parsed.ans) flags.push('no correct answer detected');
+    else if (!parsed.opts[parsed.ans]) flags.push('answer letter has no matching option');
+    if (!parsed.whyCorrect) flags.push('no explanation detected');
+    parsed.flags = flags;
+    questions.push(parsed);
+  });
+
+  if (questions.length === 0) issues.push('No questions found. Check the format (see the guide).');
+
+  return { title, questions, issues };
+}
+
+function parseBlock(body) {
+  let b = body.replace(/\n{3,}/g, '\n\n').trim();
+  if (!b) return null;
+
+  // correct answer
+  let ans = null;
+  const ansM = b.match(/Correct\s*Answer\s*[:\-]?\s*\(?\s*([A-D])\s*\)?/i);
+  if (ansM) ans = ansM[1].toUpperCase();
+
+  // split at the "Correct Answer" line: pre = stem+options, post = answer+explanation
+  const caIdx = b.search(/Correct\s*Answer\s*[:\-]/i);
+  const pre = caIdx >= 0 ? b.slice(0, caIdx) : b;
+  const post = caIdx >= 0 ? b.slice(caIdx) : '';
+
+  // options — prefer "(A) ..." form, fall back to "A) ..." / "A. ..."
+  const opts = {};
+  let firstOptIdx = -1;
+  let om;
+  const parenRe = /^[ \t]*\(([A-Da-d])\)[ \t]*(.+?)[ \t]*$/gm;
+  while ((om = parenRe.exec(pre)) !== null) {
+    if (firstOptIdx < 0) firstOptIdx = om.index;
+    opts[om[1].toUpperCase()] = om[2].trim();
+  }
+  if (Object.keys(opts).length === 0) {
+    const altRe = /^[ \t]*([A-Da-d])[\).][ \t]*(.+?)[ \t]*$/gm;
+    while ((om = altRe.exec(pre)) !== null) {
+      if (firstOptIdx < 0) firstOptIdx = om.index;
+      opts[om[1].toUpperCase()] = om[2].trim();
+    }
+  }
+
+  // stem region (before first option), drop a leading "Question:" label
+  let stemRegion = (firstOptIdx >= 0 ? pre.slice(0, firstOptIdx) : pre);
+  stemRegion = stemRegion.replace(/^\s*Question\s*[:\-]?\s*/i, '').trim();
+
+  // statements: "Statement I:" / "I." / "I)" (roman I..VI), need >=2 to count
+  const stmtRe = /^[ \t]*(?:Statement[ \t]+)?(I{1,3}|IV|VI?|VII|VIII|IX|X)[ \t]*[:.\)][ \t]+(.+?)[ \t]*$/gim;
+  const sm = [];
+  let s;
+  while ((s = stmtRe.exec(stemRegion)) !== null) {
+    sm.push({ label: s[1].toUpperCase(), text: s[2].trim(), start: s.index, end: stmtRe.lastIndex });
+  }
+  let intro = '', stem = '', statements = [];
+  if (sm.length >= 2) {
+    statements = sm.map((x) => ({ l: x.label, t: x.text }));
+    intro = stemRegion.slice(0, sm[0].start).trim();
+    const tail = stemRegion.slice(sm[sm.length - 1].end).trim();
+    if (tail) stem = tail;
+    else { stem = intro; intro = ''; }
+  } else {
+    stem = stemRegion;
+  }
+  stem = stem.replace(/\s+/g, ' ').trim();
+  intro = intro.replace(/\s+/g, ' ').trim();
+
+  // explanation: "Why (X) is correct/incorrect"
+  const whyRe = /Why\s*\(?\s*([A-Da-d])\s*\)?\s*is\s*(in)?correct\s*[:\-]?/gi;
+  const hits = [];
+  let w;
+  while ((w = whyRe.exec(post)) !== null) {
+    hits.push({ letter: w[1].toUpperCase(), incorrect: !!w[2], start: w.index, end: whyRe.lastIndex });
+  }
+  let whyCorrect = '';
+  const wrong = [];
+  hits.forEach((h, i) => {
+    const t = _clean(post.slice(h.end, i + 1 < hits.length ? hits[i + 1].start : post.length));
+    if (!h.incorrect) {
+      if (!whyCorrect || h.letter === ans) whyCorrect = t;
+    } else {
+      wrong.push({ o: h.letter, t });
+    }
+  });
+  wrong.sort((a, c) => a.o.localeCompare(c.o));
+
+  return { intro, statements, stem, opts, ans, whyCorrect, wrong };
+}
+
+/* ---------- deck builder ---------- */
+const THEMES = {
+  navy:   { dark: '13294B', mid: '21486F', tint: 'E9EEF5' },
+  slate:  { dark: '1F2A37', mid: '3B4A5A', tint: 'EBEEF2' },
+  indigo: { dark: '27306B', mid: '434E9E', tint: 'EAECF7' },
+  plum:   { dark: '3B1F47', mid: '6A3D7A', tint: 'F0E9F3' },
+};
+const GREEN = '1E7A46', GREENBG = 'E7F3EC', RED = 'A23B2E';
+const BG = 'F4F7FA', WHITE = 'FFFFFF', INK = '1E2A38', MUTED = '5C6B7A';
+const FONT = 'Cambria';
+const BASE = 16;      // standard body text size
+const MIN_SIZE = 12;  // only used if a slide's content cannot fit at 16
+
+// rough line estimate for Cambria (avg glyph ~0.5em)
+function estLines(text, size, widthIn) {
+  if (!text) return 0;
+  const cpl = Math.max(10, Math.floor(widthIn / (size / 72 * 0.44)));
+  return String(text).split('\n').reduce((n, p) => n + Math.max(1, Math.ceil(p.length / cpl)), 0);
+}
+function lineH(size) { return size / 72 * 1.2; }
+
+function buildDeck(PptxCtor, parsed, opts) {
+  opts = opts || {};
+  const th = THEMES[opts.theme] || THEMES.navy;
+  const DARK = th.dark, MID = th.mid, TINT = th.tint;
+  const title = (opts.title || parsed.title || 'Multiple-Choice Questions').trim();
+  const keepNums = !!opts.keepNums;
+  const W = 13.333, H = 7.5, M = 0.55, BOTTOM = H - 0.6;
+  const qs = parsed.questions;
+
+  const pptx = new PptxCtor();
+  pptx.defineLayout({ name: 'W', width: W, height: H });
+  pptx.layout = 'W';
+  pptx.title = title;
+
+  const shadow = () => ({ type: 'outer', color: '9AA7B4', blur: 6, offset: 2, angle: 90, opacity: 0.35 });
+
+  function badge(s, x, y, d, t, fill, tcol, fs) {
+    s.addShape('ellipse', { x, y, w: d, h: d, fill: { color: fill }, line: { type: 'none' } });
+    s.addText(t, { x, y, w: d, h: d, align: 'center', valign: 'middle', fontFace: FONT,
+      fontSize: fs || (String(t).length > 2 ? 14 : 18), bold: true, color: tcol, isTextBox: true, margin: 0 });
+  }
+  function header(s, label, labelColor, n, badgeFill) {
+    badge(s, M, 0.5, 0.78, 'Q' + n, badgeFill, WHITE);
+    s.addText(label, { x: M + 0.98, y: 0.53, w: 8, h: 0.3, fontFace: FONT, fontSize: 12, bold: true, color: labelColor, charSpacing: 2, isTextBox: true, margin: 0 });
+    s.addText(title, { x: M + 0.98, y: 0.82, w: 11.2, h: 0.4, fontFace: FONT, fontSize: 18, bold: true, color: DARK, isTextBox: true, margin: 0 });
+  }
+  function footer(s, n) {
+    s.addText(title, { x: M, y: H - 0.42, w: 9, h: 0.3, fontFace: FONT, fontSize: 9, color: MUTED, align: 'left', isTextBox: true, margin: 0 });
+    s.addText('Q' + n + ' / ' + qs.length, { x: W - M - 2, y: H - 0.42, w: 2, h: 0.3, fontFace: FONT, fontSize: 9, color: MUTED, align: 'right', isTextBox: true, margin: 0 });
+  }
+
+  // ---------- title slide ----------
+  {
+    const s = pptx.addSlide();
+    s.background = { color: DARK };
+    s.addShape('roundRect', { x: M, y: 1.7, w: 0.9, h: 0.14, rectRadius: 0.07, fill: { color: MID }, line: { type: 'none' } });
+    s.addText('MULTIPLE-CHOICE PRACTICE', { x: M, y: 2.5, w: 11, h: 0.4, fontFace: FONT, fontSize: 15, bold: true, color: 'AEC2DD', charSpacing: 3, isTextBox: true, margin: 0 });
+    s.addText(title, { x: M, y: 2.95, w: 12, h: 1.9, fontFace: FONT, fontSize: title.length > 48 ? 34 : 44, bold: true, color: WHITE, valign: 'top', isTextBox: true, margin: 0 });
+    s.addText(qs.length + ' question' + (qs.length === 1 ? '' : 's') + ' \u2014 each with its answer and explanation on the next slide.',
+      { x: M, y: 5.25, w: 11, h: 0.8, fontFace: FONT, fontSize: 18, color: 'CBD9EC', isTextBox: true, margin: 0 });
+  }
+
+  const STEM_W = W - 2 * M - 0.6;   // text width inside the question card
+  const OPT_W = W - 2 * M - 1.05;   // text width inside an option row
+  const WHY_W = W - 2 * M - 0.6;
+  const WRONG_W = W - 2 * M - 1.0;
+
+  // ---- question-slide layout at a given font size ----
+  function layoutQuestion(q, sz) {
+    const lh = lineH(sz);
+    const hasStmt = q.statements && q.statements.length >= 2;
+    let lines = 0, paras = 0;
+    if (hasStmt) {
+      if (q.intro) { lines += estLines(q.intro, sz, STEM_W); paras++; }
+      q.statements.forEach((st) => { lines += estLines(st.l + '.  ' + st.t, sz, STEM_W); paras++; });
+      if (q.stem) { lines += estLines(q.stem, sz, STEM_W); paras++; }
+    } else {
+      lines = estLines(q.stem || 'x', sz, STEM_W); paras = 1;
+    }
+    const stemH = Math.max(1.0, 0.34 + lines * lh + Math.max(0, paras - 1) * 0.07);
+    const stemTop = 1.5;
+    const optTop = stemTop + stemH + 0.3;
+    const letters = ['A', 'B', 'C', 'D'].filter((L) => q.opts[L] != null);
+    const gap = 0.13;
+    const natural = letters.map((L) => Math.max(0.52, estLines(q.opts[L], sz, OPT_W) * lh + 0.22));
+    const availOpts = BOTTOM - optTop;
+    const naturalSum = natural.reduce((a, b) => a + b, 0) + gap * Math.max(0, letters.length - 1);
+    let rows = natural;
+    if (letters.length) {
+      const uniform = (availOpts - gap * (letters.length - 1)) / letters.length;
+      const padded = natural.map((h) => Math.max(h, Math.min(0.86, uniform)));
+      const paddedSum = padded.reduce((a, b) => a + b, 0) + gap * (letters.length - 1);
+      if (paddedSum <= availOpts) rows = padded;
+    }
+    return { hasStmt, stemTop, stemH, optTop, letters, rows, gap, fits: naturalSum <= availOpts };
+  }
+
+  // ---- answer-slide layout at a given font size ----
+  function layoutAnswer(q, sz) {
+    const lh = lineH(sz);
+    const ansText = q.ans ? '(' + q.ans + ')' : '\u2014';
+    const ansOpt = q.ans && q.opts[q.ans] ? q.opts[q.ans] : '';
+    const banTop = 1.5;
+    const banH = Math.max(1.0, estLines('\u2713  Correct Answer:  ' + ansText + '  ' + ansOpt, sz, W - 2 * M - 0.6) * lh + 0.45);
+    const wcTop = banTop + banH + 0.22;
+    const why = q.whyCorrect || '(explanation not found in the pasted text)';
+    const wcH = Math.max(1.0, 0.6 + estLines(why, sz, WHY_W) * lh + 0.2);
+    const whTop = wcTop + wcH + 0.25;
+    const listTop = whTop + 0.44;
+    const g = 0.12;
+    const wrong = q.wrong || [];
+    const natural = wrong.map((w) => Math.max(0.52, estLines(w.t, sz, WRONG_W) * lh + 0.22));
+    const avail = BOTTOM - listTop;
+    const naturalSum = natural.reduce((a, b) => a + b, 0) + g * Math.max(0, wrong.length - 1);
+    let rows = natural;
+    if (wrong.length) {
+      const uniform = (avail - g * (wrong.length - 1)) / wrong.length;
+      const padded = natural.map((h) => Math.max(h, Math.min(0.9, uniform)));
+      const paddedSum = padded.reduce((a, b) => a + b, 0) + g * (wrong.length - 1);
+      if (paddedSum <= avail) rows = padded;
+    }
+    const fits = wrong.length ? naturalSum <= avail : (wcTop + wcH <= BOTTOM);
+    return { ansText, ansOpt, why, banTop, banH, wcTop, wcH, whTop, listTop, g, rows, fits };
+  }
+
+  // pick 16pt; step down only if the slide genuinely can't hold the content
+  function fitSize(layoutFn, q) {
+    for (let sz = BASE; sz >= MIN_SIZE; sz--) {
+      const L = layoutFn(q, sz);
+      if (L.fits) return { sz, L };
+    }
+    return { sz: MIN_SIZE, L: layoutFn(q, MIN_SIZE) };
+  }
+
+  qs.forEach((q, i) => {
+    const n = keepNums ? q.srcNum : (i + 1);
+
+    // ===== QUESTION SLIDE =====
+    {
+      const { sz, L } = fitSize(layoutQuestion, q);
+      const s = pptx.addSlide();
+      s.background = { color: BG };
+      header(s, 'QUESTION', MID, n, DARK);
+
+      const runs = [];
+      if (L.hasStmt) {
+        if (q.intro) runs.push({ text: q.intro, options: { fontFace: FONT, fontSize: sz, bold: true, color: INK, breakLine: true, paraSpaceAfter: 5 } });
+        q.statements.forEach((st) => {
+          runs.push({ text: st.l + '.  ', options: { fontFace: FONT, fontSize: sz, bold: true, color: MID } });
+          runs.push({ text: st.t, options: { fontFace: FONT, fontSize: sz, color: INK, breakLine: true, paraSpaceAfter: 5 } });
+        });
+        if (q.stem) runs.push({ text: q.stem, options: { fontFace: FONT, fontSize: sz, bold: true, italic: true, color: DARK, breakLine: true } });
+      } else {
+        runs.push({ text: q.stem || '(question text missing)', options: { fontFace: FONT, fontSize: sz, bold: true, color: INK } });
+      }
+      s.addShape('roundRect', { x: M, y: L.stemTop, w: W - 2 * M, h: L.stemH, rectRadius: 0.08, fill: { color: TINT }, line: { type: 'none' }, shadow: shadow() });
+      s.addText(runs, { x: M + 0.3, y: L.stemTop + 0.16, w: STEM_W, h: L.stemH - 0.3, valign: 'top', align: 'left', isTextBox: true, margin: 0 });
+
+      let y = L.optTop;
+      L.letters.forEach((Lt, k) => {
+        const rh = L.rows[k];
+        s.addShape('roundRect', { x: M, y, w: W - 2 * M, h: rh, rectRadius: 0.06, fill: { color: WHITE }, line: { color: 'D4DEEA', width: 1 } });
+        badge(s, M + 0.16, y + (rh - 0.5) / 2, 0.5, Lt, DARK, WHITE, 16);
+        s.addText(q.opts[Lt], { x: M + 0.85, y, w: OPT_W, h: rh, valign: 'middle', align: 'left', fontFace: FONT, fontSize: sz, color: INK, isTextBox: true, margin: 0 });
+        y += rh + L.gap;
+      });
+      footer(s, n);
+    }
+
+    // ===== ANSWER SLIDE =====
+    {
+      const { sz, L } = fitSize(layoutAnswer, q);
+      const s = pptx.addSlide();
+      s.background = { color: BG };
+      header(s, 'ANSWER & EXPLANATION', GREEN, n, GREEN);
+
+      s.addShape('roundRect', { x: M, y: L.banTop, w: W - 2 * M, h: L.banH, rectRadius: 0.08, fill: { color: GREEN }, line: { type: 'none' }, shadow: shadow() });
+      s.addText([
+        { text: '\u2713  ', options: { fontFace: FONT, fontSize: sz + 4, bold: true, color: WHITE } },
+        { text: 'Correct Answer:  ', options: { fontFace: FONT, fontSize: sz, color: 'CFEBD9' } },
+        { text: L.ansText + '  ', options: { fontFace: FONT, fontSize: sz + 4, bold: true, color: WHITE } },
+        { text: L.ansOpt, options: { fontFace: FONT, fontSize: sz, color: 'F2FAF5' } },
+      ], { x: M + 0.35, y: L.banTop, w: W - 2 * M - 0.6, h: L.banH, valign: 'middle', align: 'left', isTextBox: true, margin: 0 });
+
+      s.addShape('roundRect', { x: M, y: L.wcTop, w: W - 2 * M, h: L.wcH, rectRadius: 0.08, fill: { color: GREENBG }, line: { type: 'none' } });
+      s.addText('\u2713  Why ' + L.ansText + ' is correct', { x: M + 0.3, y: L.wcTop + 0.16, w: 10, h: 0.4, fontFace: FONT, fontSize: sz, bold: true, color: GREEN, isTextBox: true, margin: 0 });
+      s.addText(L.why, { x: M + 0.3, y: L.wcTop + 0.58, w: WHY_W, h: L.wcH - 0.7, valign: 'top', align: 'left', fontFace: FONT, fontSize: sz, color: INK, isTextBox: true, margin: 0 });
+
+      if (q.wrong && q.wrong.length) {
+        s.addText('\u00D7  Why the other options don\u2019t work', { x: M, y: L.whTop - 0.03, w: 10, h: 0.38, fontFace: FONT, fontSize: sz, bold: true, color: RED, isTextBox: true, margin: 0 });
+        let y = L.listTop;
+        q.wrong.forEach((wr, k) => {
+          const rh = L.rows[k];
+          s.addShape('roundRect', { x: M, y, w: W - 2 * M, h: rh, rectRadius: 0.05, fill: { color: WHITE }, line: { color: 'E3D3D0', width: 1 } });
+          badge(s, M + 0.16, y + (rh - 0.46) / 2, 0.46, wr.o, RED, WHITE, 15);
+          s.addText(wr.t, { x: M + 0.8, y, w: WRONG_W, h: rh, valign: 'middle', align: 'left', fontFace: FONT, fontSize: sz, color: INK, isTextBox: true, margin: 0 });
+          y += rh + L.g;
+        });
+      }
+      footer(s, n);
+    }
+  });
+
+  return pptx;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { parseMCQs, buildDeck, THEMES };
+}
+</script>
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var titleEl=$("title"), srcEl=$("src"), keepEl=$("keepnums"),
+      statusEl=$("status"), prevEl=$("preview"),
+      btnPrev=$("btnPreview"), btnMake=$("btnMake");
+  var LS="mcq2ppt.";
+  var currentTheme="navy";
+
+  var ACCENTS={
+    navy:{light:["#13294b","#eaeff6","#13294b"],dark:["#9db8e6","#1b2740","#cdddf7"]},
+    slate:{light:["#1f2a37","#eceef2","#1f2a37"],dark:["#aeb9c7","#20262f","#d7dee8"]},
+    indigo:{light:["#434e9e","#ebecf7","#36408a"],dark:["#aab2ef","#222749","#cbd0f7"]},
+    plum:{light:["#6a3d7a","#f0e9f3","#5a3268"],dark:["#cfa6dd","#2a1f31","#e6cdee"]}
+  };
+  function darkMode(){ try{ return matchMedia("(prefers-color-scheme: dark)").matches; }catch(e){ return false; } }
+  function applyAccent(){
+    var set=(ACCENTS[currentTheme]||ACCENTS.navy)[darkMode()?"dark":"light"];
+    var r=document.documentElement.style;
+    r.setProperty("--accent",set[0]); r.setProperty("--accent-soft",set[1]); r.setProperty("--accent-ink",set[2]);
+  }
+  try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyAccent); }catch(e){}
+
+  function save(){ try{
+    localStorage.setItem(LS+"title",titleEl.value);
+    localStorage.setItem(LS+"src",srcEl.value);
+    localStorage.setItem(LS+"theme",currentTheme);
+    localStorage.setItem(LS+"keep",keepEl.checked?"1":"0");
+  }catch(e){} }
+  function load(){ try{
+    if(localStorage.getItem(LS+"title")!=null) titleEl.value=localStorage.getItem(LS+"title");
+    if(localStorage.getItem(LS+"src")!=null) srcEl.value=localStorage.getItem(LS+"src");
+    var t=localStorage.getItem(LS+"theme"); if(t&&ACCENTS[t]) currentTheme=t;
+    keepEl.checked=localStorage.getItem(LS+"keep")==="1";
+  }catch(e){} }
+
+  function setTheme(t){
+    currentTheme=ACCENTS[t]?t:"navy";
+    var sws=document.querySelectorAll(".sw");
+    for(var i=0;i<sws.length;i++) sws[i].setAttribute("aria-pressed", sws[i].getAttribute("data-theme")===currentTheme?"true":"false");
+    applyAccent(); save();
+  }
+
+  function status(msg,cls){ statusEl.className="status"+(cls?" "+cls:""); statusEl.textContent=msg||""; }
+
+  function esc(s){ return (s||"").replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
+
+  function renderPreview(parsed){
+    if(!parsed.questions.length){
+      prevEl.innerHTML='<div class="pvhead warnline">No questions found — check the format guide below.</div>';
+      return;
+    }
+    var h='<div class="pvhead">Found '+parsed.questions.length+' question'+(parsed.questions.length>1?"s":"")+
+          (parsed.title?' · title: “'+esc(parsed.title)+'”':'')+'</div><div class="qchips">';
+    parsed.questions.forEach(function(q,i){
+      var warn=q.flags&&q.flags.length;
+      var meta=Object.keys(q.opts).length+" opts"+(q.statements.length?(" · "+q.statements.length+" stmts"):"");
+      h+='<div class="qchip'+(warn?' qwarn':'')+'">'+
+         '<span class="qn">Q'+(keepEl.checked?q.srcNum:(i+1))+'</span>'+
+         '<span class="qans">'+(q.ans||"?")+'</span>'+
+         '<span class="qstem">'+esc(q.stem||q.intro||"(no text)")+'</span>'+
+         '<span class="qmeta">'+(warn?('⚠ '+esc(q.flags.join("; "))):meta)+'</span>'+
+         '</div>';
+    });
+    h+='</div>';
+    prevEl.innerHTML=h;
+  }
+
+  function filename(parsed){
+    var base=(titleEl.value||parsed.title||"questions").replace(/[^\w \-]+/g,"").replace(/\s+/g," ").trim().slice(0,80);
+    if(!base) base="questions";
+    return base+".pptx";
+  }
+
+  function doPreview(){
+    var parsed=parseMCQs(srcEl.value);
+    renderPreview(parsed);
+    if(parsed.questions.length) status(""); else status("");
+    return parsed;
+  }
+
+  async function getDownloads(){
+    try{ if(window.claude&&claude.use){ return await claude.use("downloads"); } }catch(e){}
+    return null;
+  }
+  function anchorSave(blob,name){
+    try{
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=url; a.download=name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  async function doMake(){
+    if(typeof PptxGenJS==="undefined"){ status("Couldn’t load the PowerPoint engine. Check your connection and reload.","err"); return; }
+    var parsed=parseMCQs(srcEl.value);
+    renderPreview(parsed);
+    if(!parsed.questions.length){ status("Nothing to build — no questions detected.","err"); return; }
+    btnMake.disabled=true; var old=btnMake.textContent; btnMake.textContent="Building…"; status("Building your deck…");
+    try{
+      var pptx=buildDeck(PptxGenJS, parsed, {theme:currentTheme, keepNums:keepEl.checked, title:titleEl.value});
+      var blob=await pptx.write({outputType:"blob"});
+      var name=filename(parsed);
+      var dl=await getDownloads();
+      if(dl){
+        try{
+          await dl.save({filename:name,data:blob});
+          status("Saved “"+name+"” · "+parsed.questions.length+" questions, "+(parsed.questions.length*2+1)+" slides.","ok");
+        }catch(e){
+          if(e&&e.code==="declined"){ status("Save cancelled.",""); }
+          else { status("Save failed ("+((e&&e.code)||"error")+").","err"); }
+        }
+      }else{
+        if(anchorSave(blob,name)) status("Downloaded “"+name+"”.","ok");
+        else status("Couldn’t start the download in this view.","err");
+      }
+    }catch(e){
+      status("Something went wrong building the deck: "+(e&&e.message||e),"err");
+    }finally{
+      btnMake.disabled=false; btnMake.textContent=old;
+    }
+  }
+
+  // wire up
+  document.querySelectorAll(".sw").forEach(function(b){
+    b.addEventListener("click",function(){ setTheme(b.getAttribute("data-theme")); });
+  });
+  $("loadEx").addEventListener("click",function(){
+    if(srcEl.value.trim() && !confirm("Replace the current text with the example?")) return;
+    srcEl.value=$("exBox").textContent; if(!titleEl.value) titleEl.value="Sample Quiz"; save(); doPreview();
+  });
+  var t;
+  function deb(){ clearTimeout(t); t=setTimeout(save,300); }
+  srcEl.addEventListener("input",deb); titleEl.addEventListener("input",deb);
+  keepEl.addEventListener("change",function(){ save(); if(prevEl.innerHTML) doPreview(); });
+  function doReset(){
+    srcEl.value=""; titleEl.value="";
+    prevEl.innerHTML=""; status("");
+    try{ localStorage.removeItem(LS+"src"); localStorage.removeItem(LS+"title"); }catch(e){}
+    srcEl.focus();
+  }
+  $("btnReset").addEventListener("click",doReset);
+  btnPrev.addEventListener("click",doPreview);
+  btnMake.addEventListener("click",doMake);
+
+  load(); setTheme(currentTheme);
+  if(srcEl.value.trim()) doPreview();
+})();
+</script>
+</body>
+</html>
